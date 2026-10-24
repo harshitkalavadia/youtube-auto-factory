@@ -48,13 +48,14 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
+video_path = "output/output.mp4"
 title_file = "output/video_title.txt"
 
 if os.path.exists(title_file):
     with open(title_file, "r", encoding="utf-8") as f:
         title = f.read().strip()
 else:
-    title = os.path.splitext(os.path.basename(video_file))[0]
+    title = os.path.splitext(os.path.basename(video_path))[0]
 
 if not title:
     title = "Beyond the Known: Unexplained Mysteries"
@@ -63,7 +64,8 @@ title = title[:100]
 description = os.getenv(
         "VIDEO_DESCRIPTION",
         "Discover the mysteries of our universe with Beyond the Known."
-    )
+)
+
 body = {
         "snippet": {
             "title": title,
