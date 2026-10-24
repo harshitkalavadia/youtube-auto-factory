@@ -48,17 +48,15 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
-import glob
 import os
 
-# Deep scan all folders and subfolders for any generated mp4 file
-mp4_files = glob.glob("**/*.mp4", recursive=True)
-video_path = mp4_files if mp4_files else "output/output.mp4"
+# Explicitly target the compiled asset path matching your generated workspace folder
+video_path = "output/work_short_2026-10-24/short_2026-10-24.mp4"
 
-# Print a list of EVERYTHING in the workspace to see what factory.py created
-print(f"DEBUG: Found video file paths: {mp4_files}")
-print(f"DEBUG: All files in workspace: {glob.glob('**/*', recursive=True)[:50]}")
-print(f"DEBUG: Using video path: {video_path}")
+# Fallback auto-checker if the file isn't stitched together yet
+if not os.path.exists(video_path):
+    print("WARNING: Compiled MP4 not found. Attempting fallback default.")
+    video_path = "output/output.mp4"
 
 title_file = "output/video_title.txt"
 
