@@ -48,10 +48,13 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
-import os
+import glob
 
-# Target the exact standard output file path built by factory.py
-video_path = "output/output.mp4"
+# Search every folder and subfolder dynamically for the newly compiled video file
+compiled_matches = glob.glob("**/*.mp4", recursive=True)
+video_path = compiled_matches[0] if compiled_matches else "output/output.mp4"
+
+print(f"AUTOMATION: Located target short video file at path -> {video_path}")
 
 title_file = "output/video_title.txt"
 
