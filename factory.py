@@ -271,10 +271,6 @@ def main():
     short["reason"] = short.get("reason", "Selected from trend candidates and evergreen potential.")
     render_video(short, f"short_{date}", vertical=True)
     # Weekly long-form draft: Sunday UTC. Change this if you prefer another day.
-    if now.weekday() == 6:
-        long = choose_long_topic(trends, short.get("topic", ""))
-        render_video(long, f"long_{date}", vertical=False)
-    print("Draft generation complete. Review videos before publishing.")
 
 if __name__ == "__main__":
     main()
