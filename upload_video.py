@@ -66,7 +66,7 @@ def main():
             "categoryId": "24",
         },
         "status": {
-            "privacyStatus": "unlisted",
+            "privacyStatus": "public",
             "selfDeclaredMadeForKids": False,
         },
     }
