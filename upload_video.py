@@ -89,15 +89,15 @@ request = youtube.videos().insert(
     )
 
 response = None
-    while response is None:
-        progress, response = request.next_chunk()
-        if progress:
-            print(f"Upload progress: {int(progress.progress() * 100)}%")
 
-    print("Upload successful.")
-    print("Video ID:", response["id"])
-    print("Watch URL: https://www.youtube.com/watch?v=" + response["id"])
-
+# This line must be completely flush to the left margin:
+while response is None:
+    try:
+        print("Uploading file...")
+        status, response = request.next_chunk()
+        if status:
+            print(f"Uploaded {int(status.progress() * 100)}%")
+    except HttpError as e:
 
 if __name__ == "__main__":
     main()
