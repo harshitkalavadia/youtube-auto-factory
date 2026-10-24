@@ -241,28 +241,16 @@ def render_video(data, stem, vertical=True):
             visual_text = str(scene)
             narration = str(scene)
                 
-        # 2. Construct a unique output filename with a .jpg extension
-        scene_filename = f"{stem}_{i}.jpg"
-        
-        # 3. Pass the filename with its extension to make_card
-        make_card(visual_text, i, len(scenes), scene_filename, vertical)
+        # 2. Pass the standard stem variable to make_card
+        make_card(visual_text, i, len(scenes), stem, vertical)
 
+    # 3. Correctly track the created scene image names so clips can compile
     clips = []
+    scene_files = [work / f"{stem}_{i}.jpg" for i in range(len(scenes))]
+    audio_files = [work / f"{stem}_{i}.mp3" for i in range(len(scenes))]
+
     for i, (card, audio) in enumerate(zip(scene_files, audio_files), 1):
         clip = work / f"clip_{i:02d}.mp4"
-        # Each scene duration follows its narration audio.
-        run(["ffmpeg", "-y", "-loop", "1", "-i", str(card), "-i", str(audio),
-             "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac",
-             "-b:a", "128k", "-pix_fmt", "yuv420p", "-shortest",
-             "-vf", "scale=1080:1920" if vertical else "scale=1920:1080",
-             "-r", "25", "-movflags", "+faststart", str(clip)])
-        clips.append(clip)
-
-    concat = work / "concat.txt"
-    concat.write_text("".join(f"file '{p.resolve()}'\n" for p in clips), encoding="utf-8")
-    output = ROOT / f"{stem}.mp4"
-    run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat),
-         "-c", "copy", "-movflags", "+faststart", str(output)])
     metadata = {k: data.get(k) for k in ["topic", "title", "description", "tags", "reason"]}
     (ROOT / f"{stem}.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return output
