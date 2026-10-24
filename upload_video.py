@@ -61,7 +61,6 @@ if not title:
     title = "Beyond the Known: Unexplained Mysteries"
 
 title = title[:100]
-
     description = os.getenv(
         "YOUTUBE_VIDEO_DESCRIPTION",
         "Discover fascinating facts and unexplained mysteries with Beyond the Known."
