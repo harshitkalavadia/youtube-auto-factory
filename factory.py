@@ -241,16 +241,10 @@ def render_video(data, stem, vertical=True):
             visual_text = str(scene)
             narration = str(scene)
                 
-        # 2. Pass the standard stem variable to make_card
-        make_card(visual_text, i, len(scenes), stem, vertical)
+        # 2. Pass the pre-defined path from scene_files with its proper extension
+        make_card(visual_text, i, len(scenes), scene_files[i], vertical)
 
-    # 3. Correctly track the created scene image names so clips can compile
     clips = []
-    scene_files = [work / f"{stem}_{i}.jpg" for i in range(len(scenes))]
-    audio_files = [work / f"{stem}_{i}.mp3" for i in range(len(scenes))]
-
-    for i, (card, audio) in enumerate(zip(scene_files, audio_files), 1):
-        clip = work / f"clip_{i:02d}.mp4"
     metadata = {k: data.get(k) for k in ["topic", "title", "description", "tags", "reason"]}
     (ROOT / f"{stem}.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     return output
