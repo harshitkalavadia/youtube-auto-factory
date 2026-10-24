@@ -48,16 +48,10 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
-import datetime
 import os
 
-# Automatically grab today's date in YYYY-MM-DD format
-date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-
-# Dynamically target today's compiled short folder and filename
-video_path = f"output/work_short_{date_str}/short_{date_str}.mp4"
-
-print(f"DEBUG: Attempting to upload file from path: {video_path}")
+# Target the exact standard output file path built by factory.py
+video_path = "output/output.mp4"
 
 title_file = "output/video_title.txt"
 
