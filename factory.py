@@ -254,7 +254,7 @@ def render_video(data, stem, vertical=True):
     clips = []
     metadata = {k: data.get(k) for k in ["topic", "title", "description", "tags", "reason"]}
     (ROOT / f"{stem}.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    return outpath
+    return out
 
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
