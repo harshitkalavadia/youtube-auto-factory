@@ -49,13 +49,15 @@ def main():
         cache_discovery=False,
     )
 import glob
+import os
 
 # Deep scan all folders and subfolders for any generated mp4 file
 mp4_files = glob.glob("**/*.mp4", recursive=True)
 video_path = mp4_files if mp4_files else "output/output.mp4"
 
-# Print it to your GitHub terminal logs so you can see exactly where it found it
+# Print a list of EVERYTHING in the workspace to see what factory.py created
 print(f"DEBUG: Found video file paths: {mp4_files}")
+print(f"DEBUG: All files in workspace: {glob.glob('**/*', recursive=True)[:50]}")
 print(f"DEBUG: Using video path: {video_path}")
 
 title_file = "output/video_title.txt"
