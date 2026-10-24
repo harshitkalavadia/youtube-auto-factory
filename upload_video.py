@@ -48,8 +48,7 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
-
-    title_file = "output/video_title.txt"
+title_file = "output/video_title.txt"
 
 if os.path.exists(title_file):
     with open(title_file, "r", encoding="utf-8") as f:
@@ -60,14 +59,14 @@ else:
 if not title:
     title = "Beyond the Known: Unexplained Mysteries"
     
-    title = title[:100]
-    description = os.getenv(
+title = title[:100]
+description = os.getenv(
         "VIDEO_DESCRIPTION",
         "Discover the mysteries of our universe with Beyond the Known."
     )
 
 
-    body = {
+body = {
         "snippet": {
             "title": title,
             "description": description,
