@@ -1,12 +1,11 @@
 name: Generate videos
 
 on:
-
   workflow_dispatch:
 
   schedule:
 
-        - cron: "0 9 * * *"
+    - cron: "0 9 * * *"
       timezone: "Asia/Kolkata"
    
     - cron: "0 12 * * *"
