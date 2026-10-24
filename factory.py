@@ -241,8 +241,11 @@ def render_video(data, stem, vertical=True):
             visual_text = str(scene)
             narration = str(scene)
                 
-        # 2. Correct 5 positional arguments using the 'stem' variable
-        make_card(visual_text, i, len(scenes), stem, vertical)
+        # 2. Construct a unique output filename with a .jpg extension
+        scene_filename = f"{stem}_{i}.jpg"
+        
+        # 3. Pass the filename with its extension to make_card
+        make_card(visual_text, i, len(scenes), scene_filename, vertical)
 
     clips = []
     for i, (card, audio) in enumerate(zip(scene_files, audio_files), 1):
