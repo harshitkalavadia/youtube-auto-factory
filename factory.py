@@ -249,7 +249,7 @@ def render_video(data, stem, vertical=True):
                 break
                 
         # 3. Safe Execution
-        make_card(scene, visual_text, i, len(scenes), asset_var, vertical)
+        make_card(visual_text, i, len(scenes), asset_var, vertical)
 
     clips = []
     for i, (card, audio) in enumerate(zip(scene_files, audio_files), 1):
