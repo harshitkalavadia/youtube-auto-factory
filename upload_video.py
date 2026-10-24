@@ -88,7 +88,7 @@ request = youtube.videos().insert(
         media_body=media,
     )
 
-    response = None
+response = None
     while response is None:
         progress, response = request.next_chunk()
         if progress:
