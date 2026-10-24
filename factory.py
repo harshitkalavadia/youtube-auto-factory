@@ -232,7 +232,7 @@ def render_video(data, stem, vertical=True):
     work.mkdir(exist_ok=True)
     scene_files, audio_files = [], []
     import asyncio
-    for i, scene in enumerate(scenes):
+        for i, scene in enumerate(scenes):
         # 1. Safe JSON structural fallback
         if isinstance(scene, dict):
             visual_text = scene.get("visual_text", "A surprising idea")
@@ -240,16 +240,9 @@ def render_video(data, stem, vertical=True):
         else:
             visual_text = str(scene)
             narration = str(scene)
-
-        # 2. Dynamic Variable Safety Check (Bypasses NameErrors)
-        asset_var = None
-        for var_name in ['short', 'card', 'image', 'video']:
-            if var_name in locals() or var_name in globals():
-                asset_var = locals().get(var_name, globals().get(var_name))
-                break
                 
-        # 3. Safe Execution
-        make_card(visual_text, i, len(scenes), asset_var, vertical)
+        # 2. Correct 5 positional arguments using the 'stem' variable
+        make_card(visual_text, i, len(scenes), stem, vertical)
 
     clips = []
     for i, (card, audio) in enumerate(zip(scene_files, audio_files), 1):
