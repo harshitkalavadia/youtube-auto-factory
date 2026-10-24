@@ -241,8 +241,15 @@ def render_video(data, stem, vertical=True):
             visual_text = str(scene)
             narration = str(scene)
                 
-        # 2. Pass the pre-defined path from scene_files with its proper extension
-        make_card(visual_text, i, len(scenes), scene_files[i], vertical)
+        # 2. Dynamically build paths on-the-fly to prevent IndexErrors
+        dynamic_scene_file = work / f"{stem}_{i}.jpg"
+        
+        # 3. Pass the clean, dynamic path to make_card
+        make_card(visual_text, i, len(scenes), dynamic_scene_file, vertical)
+
+    # 4. Re-declare the list trackers to match the exact number of generated scenes
+    scene_files = [work / f"{stem}_{idx}.jpg" for idx in range(len(scenes))]
+    audio_files = [work / f"{stem}_{idx}.mp3" for idx in range(len(scenes))]
 
     clips = []
     metadata = {k: data.get(k) for k in ["topic", "title", "description", "tags", "reason"]}
