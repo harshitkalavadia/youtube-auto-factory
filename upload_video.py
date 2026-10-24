@@ -50,9 +50,13 @@ def main():
     )
 import glob
 
-# Dynamically auto-find any generated mp4 file inside the output directory
-mp4_files = glob.glob("output/*.mp4")
-video_path = mp4_files[0] if mp4_files else "output/output.mp4"
+# Deep scan all folders and subfolders for any generated mp4 file
+mp4_files = glob.glob("**/*.mp4", recursive=True)
+video_path = mp4_files if mp4_files else "output/output.mp4"
+
+# Print it to your GitHub terminal logs so you can see exactly where it found it
+print(f"DEBUG: Found video file paths: {mp4_files}")
+print(f"DEBUG: Using video path: {video_path}")
 
 title_file = "output/video_title.txt"
 
