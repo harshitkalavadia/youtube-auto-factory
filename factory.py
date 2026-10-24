@@ -1,0 +1,190 @@
+import os, json, re, subprocess, textwrap, datetime, pathlib, xml.etree.ElementTree as ET
+import requests
+from PIL import Image, ImageDraw, ImageFont
+import edge_tts
+
+ROOT = pathlib.Path("output")
+ROOT.mkdir(exist_ok=True)
+W, H = 1080, 1920
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
+def get_trends():
+    # Google Trends RSS is a discovery signal, not proof a topic will perform.
+    urls = [
+        "https://trends.google.com/trending/rss?geo=US",
+        "https://trends.google.com/trending/rss?geo=IN",
+    ]
+    topics = []
+    for url in urls:
+        try:
+            r = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+            r.raise_for_status()
+            root = ET.fromstring(r.text)
+            for item in root.findall(".//item"):
+                title = (item.findtext("title") or "").strip()
+                if title and title not in topics:
+                    topics.append(title)
+        except Exception as e:
+            print(f"Trend feed unavailable ({url}): {e}")
+    return topics[:20]
+
+def gemini(prompt):
+    if not GEMINI_API_KEY:
+        raise RuntimeError("Missing GEMINI_API_KEY GitHub Actions secret.")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={GEMINI_API_KEY}"
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.75, "responseMimeType": "application/json"}
+    }
+    r = requests.post(url, json=payload, timeout=90)
+    if not r.ok:
+        raise RuntimeError(f"Gemini API error {r.status_code}: {r.text[:1000]}")
+    data = r.json()
+    text = data["candidates"][0]["content"]["parts"][0]["text"]
+    # Strip accidental fences if a model returns them.
+    text = re.sub(r"^\s*```(?:json)?\s*|\s*```\s*$", "", text, flags=re.I)
+    return json.loads(text)
+
+def choose_topic(trends):
+    if not trends:
+        trends = ["why deep ocean discoveries matter", "how everyday technology works",
+                  "strange facts about the natural world"]
+    prompt = f"""
+Return valid JSON only with keys: topic, reason, title, description, tags, scenes.
+Choose ONE topic suitable for an English-language faceless YouTube Short.
+Use trend candidates as inspiration, not as verified facts:
+{json.dumps(trends)}
+Rules:
+- Select a topic that can be explained responsibly and has evergreen value.
+- Avoid medical, financial, political breaking-news or tragedy claims.
+- Do not invent current facts. Use general, verifiable educational explanations.
+- Title must be accurate, not deceptive.
+- description is 2-3 sentences and says this is educational content.
+- tags is an array of 3-6 strings.
+- scenes is an array of 6 objects, each with keys "narration" and "visual_text".
+- narration must total roughly 80-110 words, with a strong opening and satisfying ending.
+- visual_text should be concise (maximum 8 words), not a full paragraph.
+- Original wording only; no quotations or copied scripts.
+"""
+    return gemini(prompt)
+
+def choose_long_topic(trends, short_topic):
+    prompt = f"""
+Return valid JSON only with keys: topic, title, description, tags, scenes.
+Create an original English faceless YouTube long-form educational video, about 4-6 minutes,
+for a general audience. Use 8-10 scenes with narration around 45-75 words each.
+Possible trend candidates (not verified facts): {json.dumps(trends)}
+Today's Short topic for context only: {short_topic}
+Choose an evergreen subject with clear educational value. Avoid medical, financial,
+political breaking-news or tragedy claims. Do not invent statistics or citations.
+Each scene object must have "narration" and "visual_text" (max 8 words).
+description should be 2-3 sentences. tags is an array of 3-6 strings.
+"""
+    return gemini(prompt)
+
+def get_font(size, bold=False):
+    candidates = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return ImageFont.truetype(p, size=size)
+    return ImageFont.load_default()
+
+def wrap_text(draw, text, font, max_width):
+    words = str(text).split()
+    lines, line = [], ""
+    for word in words:
+        test = (line + " " + word).strip()
+        if draw.textbbox((0,0), test, font=font)[2] <= max_width:
+            line = test
+        else:
+            if line: lines.append(line)
+            line = word
+    if line: lines.append(line)
+    return lines
+
+def make_card(text, index, total, outpath, vertical=True):
+    w, h = (W, H) if vertical else (1920, 1080)
+    # Simple, original graphic card; no external image copyright issues.
+    im = Image.new("RGB", (w, h), (12, 22, 42))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((70, 90, w-70, h-90), radius=48, outline=(54, 120, 170), width=5)
+    d.text((w//2, int(h*.17)), "QUICK EXPLAINER", font=get_font(36, True),
+           fill=(100, 210, 255), anchor="mm")
+    font = get_font(66 if vertical else 62, True)
+    lines = wrap_text(d, text, font, w-180)
+    line_h = int(font.size * 1.35)
+    y = h//2 - (len(lines)*line_h)//2
+    for line in lines:
+        d.text((w//2, y), line, font=font, fill=(248, 250, 255), anchor="mm")
+        y += line_h
+    d.text((w//2, int(h*.84)), f"{index:02d} / {total:02d}", font=get_font(30),
+           fill=(160, 180, 200), anchor="mm")
+    im.save(outpath, quality=92)
+
+async def synthesize(text, out_mp3):
+    communicate = edge_tts.Communicate(text, voice="en-US-AriaNeural", rate="+0%")
+    await communicate.save(out_mp3)
+
+def run(cmd):
+    print("RUN:", " ".join(map(str, cmd)))
+    subprocess.run(cmd, check=True)
+
+def render_video(data, stem, vertical=True):
+    scenes = data.get("scenes", [])
+    if not scenes:
+        raise RuntimeError("Model returned no scenes.")
+    work = ROOT / f"work_{stem}"
+    work.mkdir(exist_ok=True)
+    scene_files, audio_files = [], []
+    import asyncio
+    for i, scene in enumerate(scenes, 1):
+        card = work / f"card_{i:02d}.png"
+        audio = work / f"audio_{i:02d}.mp3"
+        make_card(scene.get("visual_text", "A surprising idea"), i, len(scenes), card, vertical)
+        narration = str(scene.get("narration", "")).strip()
+        if not narration:
+            narration = str(scene.get("visual_text", "A surprising idea"))
+        asyncio.run(synthesize(narration, str(audio)))
+        scene_files.append(card)
+        audio_files.append(audio)
+
+    clips = []
+    for i, (card, audio) in enumerate(zip(scene_files, audio_files), 1):
+        clip = work / f"clip_{i:02d}.mp4"
+        # Each scene duration follows its narration audio.
+        run(["ffmpeg", "-y", "-loop", "1", "-i", str(card), "-i", str(audio),
+             "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac",
+             "-b:a", "128k", "-pix_fmt", "yuv420p", "-shortest",
+             "-vf", "scale=1080:1920" if vertical else "scale=1920:1080",
+             "-r", "25", "-movflags", "+faststart", str(clip)])
+        clips.append(clip)
+
+    concat = work / "concat.txt"
+    concat.write_text("".join(f"file '{p.resolve()}'\n" for p in clips), encoding="utf-8")
+    output = ROOT / f"{stem}.mp4"
+    run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat),
+         "-c", "copy", "-movflags", "+faststart", str(output)])
+    metadata = {k: data.get(k) for k in ["topic", "title", "description", "tags", "reason"]}
+    (ROOT / f"{stem}.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    return output
+
+def main():
+    now = datetime.datetime.now(datetime.timezone.utc)
+    date = now.strftime("%Y-%m-%d")
+    trends = get_trends()
+    print("Trend candidates:", trends)
+    short = choose_topic(trends)
+    short["reason"] = short.get("reason", "Selected from trend candidates and evergreen potential.")
+    render_video(short, f"short_{date}", vertical=True)
+    # Weekly long-form draft: Sunday UTC. Change this if you prefer another day.
+    if now.weekday() == 6:
+        long = choose_long_topic(trends, short.get("topic", ""))
+        render_video(long, f"long_{date}", vertical=False)
+    print("Draft generation complete. Review videos before publishing.")
+
+if __name__ == "__main__":
+    main()
