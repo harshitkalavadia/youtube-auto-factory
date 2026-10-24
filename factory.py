@@ -254,7 +254,13 @@ def render_video(data, stem, vertical=True):
     clips = []
     metadata = {k: data.get(k) for k in ["topic", "title", "description", "tags", "reason"]}
     (ROOT / f"{stem}.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    return out_mp4
+        # Automatically locate the compiled video file dynamically in the work directory
+    import glob
+    compiled_clips = glob.glob(str(work / "*.mp4"))
+    if compiled_clips:
+        return compiled_clips[0]
+        
+    return None
 
 def main():
     now = datetime.datetime.now(datetime.timezone.utc)
