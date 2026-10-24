@@ -110,8 +110,24 @@ def gemini(prompt):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={GEMINI_API_KEY}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.75, "responseMimeType": "application/json"}
+        "generationConfig": {
+            "temperature": 0.75, 
+            "responseMimeType": "application/json",
+            "responseSchema": {
+                "type": "OBJECT",
+                "properties": {
+                    "topic": {"type": "STRING"},
+                    "reason": {"type": "STRING"},
+                    "title": {"type": "STRING"},
+                    "description": {"type": "STRING"},
+                    "tags": {"type": "ARRAY", "items": {"type": "STRING"}},
+                    "scenes": {"type": "ARRAY", "items": {"type": "STRING"}}
+                },
+                "required": ["topic", "reason", "title", "description", "tags", "scenes"]
+            }
+        }
     }
+
     r = requests.post(url, json=payload, timeout=90)
     if not r.ok:
         raise RuntimeError(f"Gemini API error {r.status_code}: {r.text[:1000]}")
