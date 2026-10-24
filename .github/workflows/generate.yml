@@ -6,6 +6,21 @@ on:
 
   schedule:
 
+        - cron: "0 9 * * *"
+      timezone: "Asia/Kolkata"
+   
+    - cron: "0 12 * * *"
+      timezone: "Asia/Kolkata"
+    
+    - cron: "0 15 * * *"
+      timezone: "Asia/Kolkata"
+   
+    - cron: "0 18 * * *"
+      timezone: "Asia/Kolkata"
+    
+    - cron: "0 21 * * *"
+      timezone: "Asia/Kolkata"
+   
     - cron: "0 12 * * *"
 
 permissions:
