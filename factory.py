@@ -243,7 +243,7 @@ def render_video(data, stem, vertical=True):
             narration = str(scene)
 
         # Pass the safe visual_text variable instead of scene.get()
-        make_card(scene, visual_text, i, len(scenes), card, vertical)
+        make_card(scene, visual_text, i, len(scenes), short, vertical)
         scene_files.append(card)
         audio_files.append(audio)
 
