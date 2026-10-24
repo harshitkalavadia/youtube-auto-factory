@@ -100,8 +100,3 @@ while response is None:
             print(f"A retriable HTTP error occurred: {e.resp.status} - {e.content}")
         else:
             raise e
-
-if response and "id" in response:
-    print(f"Video successfully uploaded! Video ID: {response['id']}")
-else:
-    print("Upload failed or response was empty.")
