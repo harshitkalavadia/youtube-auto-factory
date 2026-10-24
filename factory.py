@@ -34,8 +34,10 @@ def get_trends():
 def gemini(prompt):
     if not GEMINI_API_KEY:
         raise RuntimeError("Missing GEMINI_API_KEY GitHub Actions secret.")
+    # Key goes in a header, not the URL, so it cannot leak into exception text or logs.
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
-           f"{MODEL}:generateContent?key={GEMINI_API_KEY}")
+           f"{MODEL}:generateContent")
+    headers = {"x-goog-api-key": GEMINI_API_KEY}
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -62,7 +64,11 @@ def gemini(prompt):
             },
         },
     }
-    r = requests.post(url, json=payload, timeout=90)
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=90)
+    except requests.RequestException as e:
+        # Re-raise without the original exception chain: it may echo the request URL.
+        raise RuntimeError(f"Gemini request failed: {type(e).__name__}") from None
     if not r.ok:
         raise RuntimeError(f"Gemini API error {r.status_code}: {r.text[:1000]}")
     text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
@@ -105,7 +111,8 @@ def get_font(size, bold=False):
     for p in candidates:
         if os.path.exists(p):
             return ImageFont.truetype(p, size=size)
-    return ImageFont.load_default()
+    # Pillow >= 10.1 (see requirements.txt) accepts a size for the built-in font.
+    return ImageFont.load_default(size=size)
 
 
 def wrap_text(draw, text, font, max_width):
@@ -195,8 +202,11 @@ def render_video(data, stem, vertical=True):
         parts.append(part)
 
     concat_list = work / "concat.txt"
+    # ffmpeg's concat demuxer single-quotes paths; escape any ' inside a path as '\''.
     concat_list.write_text(
-        "".join(f"file '{p.resolve()}'\n" for p in parts), encoding="utf-8")
+        "".join("file '{}'\n".format(str(p.resolve()).replace("'", "'\\''"))
+                for p in parts),
+        encoding="utf-8")
 
     final = ROOT / f"{stem}.mp4"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
