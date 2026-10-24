@@ -232,7 +232,7 @@ def render_video(data, stem, vertical=True):
     work.mkdir(exist_ok=True)
     scene_files, audio_files = [], []
     import asyncio
-        for i, scene in enumerate(scenes):
+    for i, scene in enumerate(scenes):
         # 1. Safe JSON structural fallback
         if isinstance(scene, dict):
             visual_text = scene.get("visual_text", "A surprising idea")
