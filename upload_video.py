@@ -49,10 +49,18 @@ def main():
         cache_discovery=False,
     )
 
-    title = os.getenv(
-        "YOUTUBE_VIDEO_TITLE",
-        video_path.stem.replace("_", " ").replace("-", " ")
-    )[:100]
+    title_file = "output/video_title.txt"
+
+if os.path.exists(title_file):
+    with open(title_file, "r", encoding="utf-8") as f:
+        title = f.read().strip()
+else:
+    title = os.path.splitext(os.path.basename(video_file))[0]
+
+if not title:
+    title = "Beyond the Known: Unexplained Mysteries"
+
+title = title[:100]
 
     description = os.getenv(
         "YOUTUBE_VIDEO_DESCRIPTION",
