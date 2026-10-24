@@ -235,7 +235,8 @@ def render_video(data, stem, vertical=True):
     for i, scene in enumerate(scenes, 1):
         card = work / f"card_{i:02d}.png"
         audio = work / f"audio_{i:02d}.mp3"
-        make_card(scene.get("visual_text", "A surprising idea"), i, len(scenes), card, vertical)
+        visual_text = scene.get("visual_text", "A surprising idea") if isinstance(scene, dict) else str(scene)
+        make_card(scene, i, len(scenes), card, vertical)
         narration = str(scene.get("narration", "")).strip()
         if not narration:
             narration = str(scene.get("visual_text", "A surprising idea"))
