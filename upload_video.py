@@ -59,12 +59,13 @@ else:
 
 if not title:
     title = "Beyond the Known: Unexplained Mysteries"
-
-title = title[:100]
+    
+    title = title[:100]
     description = os.getenv(
-        "YOUTUBE_VIDEO_DESCRIPTION",
-        "Discover fascinating facts and unexplained mysteries with Beyond the Known."
+        "VIDEO_DESCRIPTION",
+        "Discover the mysteries of our universe with Beyond the Known."
     )
+
 
     body = {
         "snippet": {
