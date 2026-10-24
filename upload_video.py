@@ -72,20 +72,18 @@ body = {
             "description": description,
             "categoryId": "24",
         },
-        "status": {
-            "privacyStatus": "public",
-            "selfDeclaredMadeForKids": False,
-        },
-    }
+        "selfDeclaredMadeForKids": False,
+    },
+}
 
-    media = MediaFileUpload(
-        str(video_path),
-        mimetype="video/mp4",
-        chunksize=8 * 1024 * 1024,
-        resumable=True,
-    )
+media = MediaFileUpload(
+    str(video_path),
+    mimetype="video/mp4",
+    chunksize=8 * 1024 * 1024,
+    resumable=True,
+)
 
-    request = youtube.videos().insert(
+request = youtube.videos().insert(
         part="snippet,status",
         body=body,
         media_body=media,
