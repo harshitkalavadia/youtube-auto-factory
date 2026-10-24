@@ -233,14 +233,17 @@ def render_video(data, stem, vertical=True):
     scene_files, audio_files = [], []
     import asyncio
     for i, scene in enumerate(scenes, 1):
-        card = work / f"card_{i:02d}.png"
-        audio = work / f"audio_{i:02d}.mp3"
-        visual_text = scene.get("visual_text", "A surprising idea") if isinstance(scene, dict) else str(scene)
-        make_card(scene, i, len(scenes), card, vertical)
-        narration = str(scene.get("narration", "")).strip()
-        if not narration:
-            narration = str(scene.get("visual_text", "A surprising idea"))
-        asyncio.run(synthesize(narration, str(audio)))
+        # Check if the scene item is a dictionary structure
+        if isinstance(scene, dict):
+            visual_text = scene.get("visual_text", "A surprising idea")
+            narration = str(scene.get("narration", "")).strip()
+        else:
+            # Fallback if Gemini returns a plain list of text strings
+            visual_text = str(scene)
+            narration = str(scene)
+
+        # Pass the safe visual_text variable instead of scene.get()
+        make_card(scene, visual_text, i, len(scenes), card, vertical)
         scene_files.append(card)
         audio_files.append(audio)
 
