@@ -48,7 +48,6 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
-title_file = "output/video_title.txt"
 
 if os.path.exists(title_file):
     with open(title_file, "r", encoding="utf-8") as f:
