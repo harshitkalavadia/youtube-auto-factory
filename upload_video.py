@@ -96,7 +96,7 @@ while response is None:
         if status:
             print(f"Uploaded {int(status.progress() * 100)}%")
     except HttpError as e:
-        if e.resp.status in : [500, 502, 503, 504]
+        if e.resp.status in [500, 502, 503, 504]
             print(f"A retriable HTTP error occurred: {e.resp.status} - {e.content}")
         else:
             raise e
