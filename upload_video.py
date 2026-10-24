@@ -48,15 +48,16 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
+import datetime
 import os
 
-# Explicitly target the compiled asset path matching your generated workspace folder
-video_path = "output/work_short_2026-10-24/short_2026-10-24.mp4"
+# Automatically grab today's date in YYYY-MM-DD format
+date_str = datetime.datetime.now().strftime("%Y-%m-%d")
 
-# Fallback auto-checker if the file isn't stitched together yet
-if not os.path.exists(video_path):
-    print("WARNING: Compiled MP4 not found. Attempting fallback default.")
-    video_path = "output/output.mp4"
+# Dynamically target today's compiled short folder and filename
+video_path = f"output/work_short_{date_str}/short_{date_str}.mp4"
+
+print(f"DEBUG: Attempting to upload file from path: {video_path}")
 
 title_file = "output/video_title.txt"
 
