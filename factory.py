@@ -2,6 +2,81 @@ import os, json, re, subprocess, textwrap, datetime, pathlib, xml.etree.ElementT
 import requests
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
+IMAGE_DIR = "output/images"
+os.makedirs(IMAGE_DIR, exist_ok=True)
+
+
+def search_image(query, index):
+    """Find a potentially relevant image on Wikimedia Commons."""
+    api = "https://commons.wikimedia.org/w/api.php"
+
+    try:
+        response = requests.get(
+            api,
+            params={
+                "action": "query",
+                "generator": "search",
+                "gsrsearch": f"filetype:bitmap {query}",
+                "gsrnamespace": 6,
+                "gsrlimit": 5,
+                "prop": "imageinfo",
+                "iiprop": "url|extmetadata",
+                "iiurlwidth": 1080,
+                "format": "json",
+            },
+            headers={"User-Agent": "BeyondTheKnownVideoBot/1.0"},
+            timeout=20,
+        )
+        response.raise_for_status()
+        pages = response.json().get("query", {}).get("pages", {})
+
+        for page in pages.values():
+            info = page.get("imageinfo", [{}])[0]
+            url = info.get("thumburl") or info.get("url")
+            if not url:
+                continue
+
+            image_response = requests.get(
+                url, timeout=25,
+                headers={"User-Agent": "BeyondTheKnownVideoBot/1.0"}
+            )
+            image_response.raise_for_status()
+
+            path = os.path.join(IMAGE_DIR, f"scene_{index}.jpg")
+            with Image.open(__import__("io").BytesIO(
+                image_response.content
+            )) as img:
+                img = img.convert("RGB")
+                img = ImageOps.fit(
+                    img, (1080, 1920),
+                    method=Image.Resampling.LANCZOS
+                )
+                img.save(path, quality=90)
+
+            metadata = info.get("extmetadata", {})
+            license_name = metadata.get("LicenseShortName", {}).get(
+                "value", "Check license"
+            )
+            artist = metadata.get("Artist", {}).get(
+                "value", "Author not listed"
+            )
+            page_url = page.get("canonicalurl", "")
+
+            with open(
+                os.path.join(IMAGE_DIR, "image_credits.txt"),
+                "a", encoding="utf-8"
+            ) as credits:
+                credits.write(
+                    f"{query} | {license_name} | {artist} | "
+                    f"{page_url}\n"
+                )
+
+            return path
+
+    except Exception as exc:
+        print(f"Image search failed for '{query}': {exc}")
+
+    return None
 
 ROOT = pathlib.Path("output")
 ROOT.mkdir(exist_ok=True)
