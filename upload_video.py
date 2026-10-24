@@ -48,7 +48,12 @@ def main():
         credentials=credentials,
         cache_discovery=False,
     )
-video_path = "output/output.mp4"
+import glob
+
+# Dynamically auto-find any generated mp4 file inside the output directory
+mp4_files = glob.glob("output/*.mp4")
+video_path = mp4_files[0] if mp4_files else "output/output.mp4"
+
 title_file = "output/video_title.txt"
 
 if os.path.exists(title_file):
