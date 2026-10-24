@@ -8,7 +8,7 @@ W, H = 1080, 1920
 ROOT = pathlib.Path("output")
 ROOT.mkdir(exist_ok=True)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 
 
 def get_trends():
