@@ -74,7 +74,6 @@ body = {
         },
         "selfDeclaredMadeForKids": False,
     },
-}
 
 media = MediaFileUpload(
     str(video_path),
