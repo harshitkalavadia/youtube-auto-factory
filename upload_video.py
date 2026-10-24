@@ -64,8 +64,6 @@ description = os.getenv(
         "VIDEO_DESCRIPTION",
         "Discover the mysteries of our universe with Beyond the Known."
     )
-
-
 body = {
         "snippet": {
             "title": title,
