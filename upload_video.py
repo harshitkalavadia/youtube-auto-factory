@@ -74,7 +74,6 @@ body = {
         },
         "selfDeclaredMadeForKids": False,
     },
-
 media = MediaFileUpload(
     str(video_path),
     mimetype="video/mp4",
@@ -83,14 +82,13 @@ media = MediaFileUpload(
 )
 
 request = youtube.videos().insert(
-        part="snippet,status",
-        body=body,
-        media_body=media,
-    )
+    part="snippet,status",
+    body=body,
+    media_body=media
+)
 
 response = None
 
-# This line must be completely flush to the left margin:
 while response is None:
     try:
         print("Uploading file...")
@@ -98,6 +96,12 @@ while response is None:
         if status:
             print(f"Uploaded {int(status.progress() * 100)}%")
     except HttpError as e:
+        if e.resp.status in:
+            print(f"A retriable HTTP error occurred: {e.resp.status} - {e.content}")
+        else:
+            raise e
 
-if __name__ == "__main__":
-    main()
+if response and "id" in response:
+    print(f"Video successfully uploaded! Video ID: {response['id']}")
+else:
+    print("Upload failed or response was empty.")
